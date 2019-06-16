@@ -1,0 +1,247 @@
+% A LaTeX (non-official) template for ISAE projects reports
+% Copyright (C) 2014 Damien Roque
+
+% This program is free software; you can redistribute it and/or
+% modify it under the terms of the GNU General Public License
+% as published by the Free Software Foundation; either version 2
+% of the License, or (at your option) any later version.
+
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+% Version: 0.2
+% Author: Damien Roque <damien.roque_AT_isae.fr>
+
+\documentclass[a4paper,12pt,twoside]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+%\usepackage[frenchb]{babel} % If you write in French
+\usepackage[english]{babel} % If you write in English
+\usepackage{a4wide}
+\usepackage{rotating}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{subfig}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\pgfplotsset{plot coordinates/math parser=false}
+\newlength\figureheight
+\newlength\figurewidth
+\pgfkeys{/pgf/number format/.cd,
+set decimal separator={,\!},
+1000 sep={\,},
+}
+\usepackage{ifthen}
+\usepackage{ifpdf}
+\ifpdf
+\usepackage[pdftex]{hyperref}
+\else
+\usepackage{hyperref}
+\fi
+\usepackage{color}
+\hypersetup{%
+colorlinks=true,
+linkcolor=black,
+citecolor=black,
+urlcolor=black}
+%\usepackage{layouts}
+\usepackage[left=2cm, right=1.99cm, top=2cm, bottom=1.75cm]{geometry}
+\usepackage{nomencl}
+\makenomenclature
+
+\renewcommand{\baselinestretch}{1.05}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyfoot{}
+\fancyhead[LE,RO]{\bfseries\thepage}
+\fancyhead[RE]{\bfseries\nouppercase{\leftmark}}
+\fancyhead[LO]{\bfseries\nouppercase{\rightmark}}
+\setlength{\headheight}{15pt}
+
+\let\headruleORIG\headrule
+\renewcommand{\headrule}{\color{black} \headruleORIG}
+\renewcommand{\headrulewidth}{1.0pt}
+\usepackage{colortbl}
+\arrayrulecolor{black}
+
+\fancypagestyle{plain}{
+  \fancyhead{}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+\makeatletter
+\def\@textbottom{\vskip \z@ \@plus 1pt}
+\let\@texttop\relax
+\makeatother
+
+\makeatletter
+\def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else%
+  \hbox{}%
+  \thispagestyle{empty}%
+  \newpage%
+  \if@twocolumn\hbox{}\newpage\fi\fi\fi}
+\makeatother
+
+\usepackage{amsthm}
+\usepackage{amssymb,amsmath,bbm}
+\usepackage{array}
+\usepackage{bm}
+\usepackage{multirow}
+\usepackage[footnote]{acronym}
+
+\newcommand*{\SET}[1]  {\ensuremath{\mathbf{#1}}}
+\newcommand*{\VEC}[1]  {\ensuremath{\boldsymbol{#1}}}
+\newcommand*{\FAM}[1]  {\ensuremath{\boldsymbol{#1}}}
+\newcommand*{\MAT}[1]  {\ensuremath{\boldsymbol{#1}}}
+\newcommand*{\OP}[1]  {\ensuremath{\mathrm{#1}}}
+\newcommand*{\NORM}[1]  {\ensuremath{\left\|#1\right\|}}
+\newcommand*{\DPR}[2]  {\ensuremath{\left \langle #1,#2 \right \rangle}}
+\newcommand*{\calbf}[1]  {\ensuremath{\boldsymbol{\mathcal{#1}}}}
+\newcommand*{\shift}[1]  {\ensuremath{\boldsymbol{#1}}}
+
+\newcommand{\eqdef}{\stackrel{\mathrm{def}}{=}}
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+\newcommand{\argmin}{\operatornamewithlimits{argmin}}
+\newcommand{\ud}{\, \mathrm{d}}
+\newcommand{\vect}{\text{Vect}}
+\newcommand{\sinc}{\ensuremath{\mathrm{sinc}}}
+\newcommand{\esp}{\ensuremath{\mathbb{E}}}
+\newcommand{\hilbert}{\ensuremath{\mathcal{H}}}
+\newcommand{\fourier}{\ensuremath{\mathcal{F}}}
+\newcommand{\sgn}{\text{sgn}}
+\newcommand{\intTT}{\int_{-T}^{T}}
+\newcommand{\intT}{\int_{-\frac{T}{2}}^{\frac{T}{2}}}
+\newcommand{\intinf}{\int_{-\infty}^{+\infty}}
+\newcommand{\Sh}{\ensuremath{\boldsymbol{S}}}
+\newcommand{\C}{\SET{C}}
+\newcommand{\R}{\SET{R}}
+\newcommand{\Z}{\SET{Z}}
+\newcommand{\N}{\SET{N}}
+\newcommand{\K}{\SET{K}}
+\newcommand{\reel}{\mathcal{R}}
+\newcommand{\imag}{\mathcal{I}}
+\newcommand{\cmnr}{c_{m,n}^\reel}
+\newcommand{\cmni}{c_{m,n}^\imag}
+\newcommand{\cnr}{c_{n}^\reel}
+\newcommand{\cni}{c_{n}^\imag}
+\newcommand{\tproto}{g}
+\newcommand{\rproto}{\check{g}}
+\newcommand{\LR}{\mathcal{L}_2(\SET{R})}
+\newcommand{\LZ}{\ell_2(\SET{Z})}
+\newcommand{\LZI}[1]{\ell_2(\SET{#1})}
+\newcommand{\LZZ}{\ell_2(\SET{Z}^2)}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\noise}{z}
+\newcommand{\Noise}{Z}
+\newcommand{\filtnoise}{\zeta}
+\newcommand{\tp}{g}
+\newcommand{\rp}{\check{g}}
+\newcommand{\TP}{G}
+\newcommand{\RP}{\check{G}}
+\newcommand{\dmin}{d_{\mathrm{min}}}
+\newcommand{\Dmin}{D_{\mathrm{min}}}
+\newcommand{\Image}{\ensuremath{\text{Im}}}
+\newcommand{\Span}{\ensuremath{\text{Span}}}
+
+\newtheoremstyle{break}
+  {11pt}{11pt}%
+  {\itshape}{}%
+  {\bfseries}{}%
+  {\newline}{}%
+\theoremstyle{break}
+
+\parskip=5pt
+%\sloppy
+
+% Keywords command
+\providecommand{\keywords}[1]
+{
+  \small	
+  \textbf{\textit{Keywords---}} #1
+}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%
+%%% First page %%%
+%%%%%%%%%%%%%%%%%%
+
+\begin{titlepage}
+\begin{center}
+
+\includegraphics[width=0.6\textwidth]{logo-isae-supaero}\\[1cm]
+
+{\large Master of Science in Aerospace Engineering}\\[0.5cm]
+
+{\large S2. Progress Report}\\[0.5cm]
+
+% Title
+\rule{\linewidth}{0.5mm} \\[0.4cm]
+{ \huge \bfseries Multifidelity aeroelastic optimization with application to a BWB \\[0.4cm] }
+\rule{\linewidth}{0.5mm} \\[1.5cm]
+
+% Author and supervisor
+\noindent
+\begin{minipage}{0.4\textwidth}
+  \begin{flushleft} \large
+    \emph{Author :}\\
+    M. Gilberto \textsc{Ruiz Jiménez}\\
+    %M. Prénom \textsc{Nom}\\
+    %M\up{me} Prénom \textsc{Nom}\\
+    %M. Prénom \textsc{Nom}
+  \end{flushleft}
+\end{minipage}%
+\begin{minipage}{0.4\textwidth}
+  \begin{flushright} \large
+    \emph{Tutors :} \\
+    M. Joseph \textsc{Morlier}\\
+    M. Joan \textsc{Mas Colomer}
+  \end{flushright}
+\end{minipage}
+
+\vfill
+
+% Bottom of the page
+{\large Starting date of the project : February, 1st 2019. \, Duration : 14 months \\Due date of the report: April 15, 2019 \\ Actual submission date : \today}
+
+\end{center}
+\end{titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Non-significant pages %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Content of the report and references %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagestyle{fancy}
+
+\cleardoublepage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Nomenclature entries %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\nomenclature{$c$}{Speed of light in a vacuum inertial frame}
+\include{authenticity}
+\include{content}
+
+\appendix
+
+\bibliographystyle{authoryear-fr}
+\bibliography{RPreferences}
+
+\clearpage
+
+\end{document}
