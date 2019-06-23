@@ -1,0 +1,135 @@
+\section{Sample problem conditions}
+\label{sec:sampleprob}
+This is an extract of the code used to run the optimization problem, some parts were left out for clarity. The full code is available on GitHub: \url{https://github.com/mid2SUPAERO/RP_MAE_GILBERTO_RUIZ_JIMENEZ}. 
+
+Flow conditions, reference quantities and material properties:
+\begin{lstlisting}
+    #Problem parameters
+    #Speed of sound
+    a = 297.4 #m/s
+
+    Sw = 383.689555 #Wing Surface, m^2
+    V = 252.16168 #Free-stream velocity, m/s
+    Mach = V/a #Mach number
+    rho_a = 0.38058496 #Air density kg/m^3
+    alpha_0 = 1.340 #Initial angle of attack, deg
+    b_0 = 58.7629 #Wing span, m
+    b_baseline = 58.7629 #Base line wing span, m
+    c = 7.00532 #Wing chord, m
+    E = 6.89e10 #Young's Modulus
+    nu = 0.31 #Poisson's ratio
+    rho_s = 2795.67 #Structure density kg/m^3
+    #Reference aircraft weight (mass units)
+    W_ref = 226796.185
+    #Wing weight (full span) of the reference aircraft (mass units)
+    W_ref_wing = 26400.
+    #Airframe weight (complete aircraft minus wing structure, mass units)
+    W_airframe = W_ref - W_ref_wing
+    #Yield stress (can also be used as ultimate stress if FS = 1.5)
+    sigma_y = 450.e6
+    #Factor of safety
+    FS = 1.
+    #Cruise load factor
+    n = 1.
+\end{lstlisting}
+Design variable boundaries and constraints.
+\begin{lstlisting}
+    #Design variable boundaries
+    #Thickness
+    t_max = 3*t_0
+    t_min = 0.25*t_0
+    
+    #Rod section
+    a_max = 3*a_0
+    a_min = 0.25*a_0
+    
+    #Root chord 
+    cr_max = 1.5*cr_0
+    cr_min = 0.75*cr_0
+    
+    #Break chord
+    cb_max = 1.5*cb_0
+    cb_min = 0.75*cb_0
+    
+    #Tip chord
+    ct_max = 1.5*ct_0
+    ct_min = 0.75*ct_0
+    
+    #Sweep angle
+    sweep_max = 50.
+    sweep_min = 30.
+    
+    #Wing span 
+    b_max = 80.
+    b_min = 40.
+    
+    #Angle of attack
+    alpha_max = 5.
+    alpha_min = -2.
+
+    #Add independent variables (parameters)
+    root.add('wing_area', IndepVarComp('Sw', Sw), promotes=['*'])
+    root.add('Airspeed', IndepVarComp('V', V), promotes=['*'])
+    root.add('air_density', IndepVarComp('rho_a', rho_a), promotes=['*'])
+    root.add('Mach_number', IndepVarComp('Mach', Mach), promotes=['*'])
+    root.add('baseline_wing_span', IndepVarComp('b_baseline', b_baseline), 
+              promotes=['*'])
+    root.add('wing_chord', IndepVarComp('c', c), promotes=['*'])
+    root.add('Youngs_modulus', IndepVarComp('E', E), promotes=['*'])
+    root.add('Poissons_ratio', IndepVarComp('nu', nu), promotes=['*'])
+    root.add('material_density', IndepVarComp('rho_s', rho_s), 
+              promotes=['*'])
+    root.add('airframe_mass', IndepVarComp('W_airframe', W_airframe), 
+              promotes=['*'])
+    root.add('Tensile_Yield_Strength', IndepVarComp('sigma_y', sigma_y), 
+              promotes=['*'])
+    root.add('factor_safety', IndepVarComp('FS', FS), promotes=['*'])
+    root.add('y_leading_edge_baseline', IndepVarComp('y_le_baseline', 
+              y_le_baseline), promotes=['*'])
+    root.add('z_leading_edge', IndepVarComp('z_le', z_le), promotes=['*'])
+    root.add('airfoil_thickness', IndepVarComp('th', th), promotes=['*'])
+    root.add('camber_chord_ratio', IndepVarComp('camc', camc), 
+              promotes=['*'])
+    root.add('base_aerodynamic_mesh', IndepVarComp('xa_b', xa_b), 
+              promotes=['*'])
+    root.add('base_structure_mesh', IndepVarComp('xs_b', xs_b), 
+              promotes=['*'])
+    root.add('cruise_load_factor', IndepVarComp('n', n), promotes=['*'])
+    root.add('root_leading_edge_x', IndepVarComp('xr', xr), 
+              promotes=['*'])
+    root.add('wing_twist', IndepVarComp('theta', theta), promotes=['*'])
+
+    # Independent variables that are optimization design variables
+    root.add('thicknesses', IndepVarComp('t', t_0), promotes=['*'])
+    root.add('rod_sections', IndepVarComp('a', a_0), promotes=['*'])
+    root.add('root_chord', IndepVarComp('cr', cr_0), promotes=['*'])
+    root.add('break_chord', IndepVarComp('cb', cb_0), promotes=['*'])
+    root.add('tip_chord', IndepVarComp('ct', ct_0), promotes=['*'])
+    root.add('sweep_angle', IndepVarComp('sweep', sweep_0), 
+              promotes=['*'])
+    root.add('wing_span', IndepVarComp('b', b_0), promotes=['*'])
+    root.add('angle_of_attack', IndepVarComp('alpha', alpha_0), 
+              promotes=['*'])
+
+    #Constraint components
+    #Lift coefficient constraints (two constraints with same value 
+    to treat equality constraint as two inequality constraints)
+    root.add('con_lift_cruise_upper', ExecComp(
+             'con_l_u = CL - n*(W_airframe+2*1.25*mass)
+             *9.81/(0.5*rho_a*V**2*Sw)'), promotes=['*'])
+    root.add('con_lift_cruise_lower', ExecComp(
+             'con_l_l = CL - n*(W_airframe+2*1.25*mass)
+             *9.81/(0.5*rho_a*V**2*Sw)'), promotes=['*'])
+
+    #Maximum stress constraint (considering factor of safety)
+    root.add('con_stress', ExecComp('con_s = FS*2.5*max(VMStress) 
+             - sigma_y', VMStress=np.zeros(n_stress,dtype=float)), 
+             promotes=['*'])
+
+    #Stress constraints (considering max load factor and factor of safety)
+    for i in range(n_stress):
+        root.add('con_stress_'+str(i+1), ExecComp('con_s_'+str(i+1)+' 
+                = FS*2.5*VMStress['+str(i)+'] - sigma_y', VMStress
+                =np.zeros(n_stress, dtype=float)), promotes=['*'])
+\end{lstlisting}
+

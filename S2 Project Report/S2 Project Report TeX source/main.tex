@@ -25,9 +25,13 @@
 \usepackage[english]{babel} % If you write in English
 \usepackage{a4wide}
 \usepackage{rotating}
+\usepackage[export]{adjustbox}
+\usepackage{multicol}
 \usepackage{graphicx}
 \graphicspath{{images/}}
 \usepackage{subfig}
+\usepackage{listings}
+\usepackage{svg}
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows}
 \usepackage{pgfplots}
@@ -55,6 +59,9 @@ urlcolor=black}
 %\usepackage{layouts}
 \usepackage[left=2cm, right=1.99cm, top=2cm, bottom=1.75cm]{geometry}
 \usepackage{nomencl}
+    \renewcommand*{\nompreamble}{\begin{multicols}{2}}
+    \renewcommand*{\nompostamble}{\end{multicols}}
+    \setlength{\columnsep}{3em}
 \makenomenclature
 
 \renewcommand{\baselinestretch}{1.05}
@@ -182,7 +189,7 @@ urlcolor=black}
 
 {\large Master of Science in Aerospace Engineering}\\[0.5cm]
 
-{\large S2. Progress Report}\\[0.5cm]
+{\large S2. Project Report}\\[0.5cm]
 
 % Title
 \rule{\linewidth}{0.5mm} \\[0.4cm]
@@ -211,7 +218,7 @@ urlcolor=black}
 \vfill
 
 % Bottom of the page
-{\large Starting date of the project : February, 1st 2019. \, Duration : 14 months \\Due date of the report: April 15, 2019 \\ Actual submission date : \today}
+{\large Starting date of the project : February, 1\textsuperscript{st} 2019. \, Duration : 14 months \\Due date of the report: July 1\textsuperscript{st}, 2019 \\ Actual submission date : \today}
 
 \end{center}
 \end{titlepage}
@@ -233,14 +240,22 @@ urlcolor=black}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Nomenclature entries %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\nomenclature{$c$}{Speed of light in a vacuum inertial frame}
+\nomenclature{MDO}{MultiDisciplinary Optimization}
+\nomenclature{MDA}{MultiDisciplinary Analysis}
+\nomenclature{MDF}{MultiDisciplinary Feasible}
+\nomenclature{BWB}{Blended Wing Body}
+\nomenclature{TRMM}{Trust Region Model Management}
+\nomenclature{MLE}{Maximum Likelihood Estimate}
+\nomenclature{RANS}{Reynolds-averaged Navier–Stokes equations}
+\nomenclature{IDF}{Individual Discipline Feasible}
 \include{authenticity}
 \include{content}
 
 \appendix
-
-\bibliographystyle{authoryear-fr}
+\include{appendices}
+\bibliographystyle{abbrv}
 \bibliography{RPreferences}
+
 
 \clearpage
 
