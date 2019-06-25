@@ -3,7 +3,7 @@
 This is an extract of the code used to run the optimization problem, some parts were left out for clarity. The full code is available on GitHub: \url{https://github.com/mid2SUPAERO/RP_MAE_GILBERTO_RUIZ_JIMENEZ}. 
 
 Flow conditions, reference quantities and material properties:
-\begin{lstlisting}
+\begin{lstlisting}[language=Python]
     #Problem parameters
     #Speed of sound
     a = 297.4 #m/s
@@ -33,7 +33,7 @@ Flow conditions, reference quantities and material properties:
     n = 1.
 \end{lstlisting}
 Design variable boundaries and constraints.
-\begin{lstlisting}
+\begin{lstlisting}[language=Python]
     #Design variable boundaries
     #Thickness
     t_max = 3*t_0
@@ -113,23 +113,23 @@ Design variable boundaries and constraints.
 
     #Constraint components
     #Lift coefficient constraints (two constraints with same value 
-    to treat equality constraint as two inequality constraints)
+    #to treat equality constraint as two inequality constraints)
     root.add('con_lift_cruise_upper', ExecComp(
-             'con_l_u = CL - n*(W_airframe+2*1.25*mass)
-             *9.81/(0.5*rho_a*V**2*Sw)'), promotes=['*'])
+    'con_l_u = CL - n*(W_airframe+2*1.25*mass)*9.81/(0.5*rho_a*V**2*Sw)')
+             , promotes=['*'])
     root.add('con_lift_cruise_lower', ExecComp(
-             'con_l_l = CL - n*(W_airframe+2*1.25*mass)
-             *9.81/(0.5*rho_a*V**2*Sw)'), promotes=['*'])
+    'con_l_l = CL - n*(W_airframe+2*1.25*mass)*9.81/(0.5*rho_a*V**2*Sw)')
+             , promotes=['*'])
 
     #Maximum stress constraint (considering factor of safety)
-    root.add('con_stress', ExecComp('con_s = FS*2.5*max(VMStress) 
-             - sigma_y', VMStress=np.zeros(n_stress,dtype=float)), 
-             promotes=['*'])
+    root.add('con_stress', ExecComp(
+            'con_s = FS*2.5*max(VMStress) - sigma_y', 
+            VMStress=np.zeros(n_stress,dtype=float)), promotes=['*'])
 
     #Stress constraints (considering max load factor and factor of safety)
     for i in range(n_stress):
-        root.add('con_stress_'+str(i+1), ExecComp('con_s_'+str(i+1)+' 
-                = FS*2.5*VMStress['+str(i)+'] - sigma_y', VMStress
-                =np.zeros(n_stress, dtype=float)), promotes=['*'])
+        root.add('con_stress_'+str(i+1), ExecComp('con_s_'+str(i+1)+
+        '= FS*2.5*VMStress['+str(i)+'] - sigma_y', VMStress
+        =np.zeros(n_stress, dtype=float)), promotes=['*'])
 \end{lstlisting}
 
