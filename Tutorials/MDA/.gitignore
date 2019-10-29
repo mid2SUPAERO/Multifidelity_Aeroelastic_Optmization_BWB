@@ -1,0 +1,16 @@
+*.pyc
+*.msh
+*.dic
+*.log
+*.nptp
+*.op2
+*.out
+*.plt
+*.pnh
+*.html
+*.sqlite3
+plot_*
+nastran_static_alpha_c.inp
+alpha_c/
+tmp/
+.ipynb_checkpoints/
