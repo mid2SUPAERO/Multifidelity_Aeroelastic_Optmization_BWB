@@ -70,12 +70,7 @@ if __name__ == "__main__":
     aero_template_h = 'aero_template_h.wgs'
     # Multi-fidelity options 'low', for low-fidelity; 'high', for high-fidelity; 'multi', for multi-fidelity
     fidelity = input('Please enter the fidelity level: low, high or multi: ')
-    # Iterations for the low-fidelity part in multi-fidelity mode
-    it_l = None
-    if fidelity == 'multi':
-        it_l = int(input('Please enter the iteration limit for the Lo-Fi level: '))                                                                
     
-
     #Sectional properties (that are not design variables)
     y_le_baseline = np.array([0., 2.938145, 7.3453752, 10.8711746, 16.1598356, 20.5670658, 24.974296, 29.3815262])
     z_le = np.array([4.424397971, 4.44511389, 4.476187859, 4.501047142, 4.538335797, 4.569409766, 4.600483735, 4.631557704])
@@ -170,6 +165,7 @@ if __name__ == "__main__":
     xa_b = aero_problem_params.apoints_coord_unique
     xa_b_h = aero_problem_params_h.apoints_coord_unique
     xs_b = structure_problem_params.node_coord_all
+    
 
     top = Problem()
     top.root = root = Group()
@@ -218,6 +214,7 @@ if __name__ == "__main__":
     root.add('planform_geometry', PlanformGeometry(n_sec, b_sec), promotes=['*'])
     root.add('aerodynamic_mesher_h', PanairMesher(n_sec, na_h, na_unique_h, network_info_h, ref_airfoil_file), promotes=['camc','chords','tc','theta','x_le','y_le','z_le','apoints_coord','apoints_coord_unique'])
     root.add('aerodynamic_mesher', PanairMesher(n_sec, na, na_unique, network_info, ref_airfoil_file), promotes=['camc','chords','tc','theta','x_le','y_le','z_le'])
+    
     root.add('structure_mesher', StructureMesher(na_unique_h, node_id, node_id_all), promotes=['*'])
 
     root.add('y_leading_edge', ExecComp(
@@ -227,6 +224,7 @@ if __name__ == "__main__":
         'tc = th/chords', tc=np.zeros(n_sec, dtype=float), th=np.zeros(n_sec, dtype=float), chords=np.zeros(n_sec, dtype=float)), promotes=['*'])
     
     #Aeroelastic MDA components
+       
     #Lo-Fi Group
     mda_l = Group()
 
@@ -236,48 +234,48 @@ if __name__ == "__main__":
     mda_l.add('load_transfer', LoadTransfer(na, ns))
     mda_l.add('structures', NastranStatic(node_id, node_id_all, n_stress, tn, mn, sn, case_name, an=an), promotes=['n','m','t','s','Ix','Iy','a'])
     
+    #Inner interpolation methods 
+    mda_l.add('inter', Interpolation(na, ns, function = function_type, bias = bias_inter), promotes=['node_coord'])
+    
     #Hi-Fi Group
     mda_h = Group()
     
     #Add disciplines to the high-fidelity group 
-    mda_h.add('mult_filter', Filter(ns, fidelity))
+    mda_h.add('mult_filter_h', Filter(ns, fidelity))
     mda_h.add('displacement_transfer_h', DisplacementTransfer(na_h, ns))
     mda_h.add('aerodynamics_h', Panair(na_h, network_info_h, case_name_h, aero_template_h, sym_plane_index=sym_plane_index), promotes=['V','Sw','alpha','rho_a','CL','CDi','apoints_coord'])    
     mda_h.add('load_transfer_h', LoadTransfer(na_h, ns))
     mda_h.add('structures_h', NastranStatic(node_id, node_id_all, n_stress, tn, mn, sn, case_name_h, an=an), promotes=['mass','VMStress','n','m','t','s','Ix','Iy','node_coord_all','a'])
     
-    #Inner interpolation methods 
-    mda_l.add('inter', Interpolation(na, ns, function = function_type, bias = bias_inter), promotes=['node_coord'])
-    mda_h.add('inter_h', Interpolation(na_h, ns, function = function_type, bias = bias_inter), promotes=['apoints_coord','node_coord'])       
+    #Inner interpolation method
+    mda_h.add('inter_h', Interpolation(na_h, ns, function = function_type, bias = bias_inter), promotes=['apoints_coord','node_coord'])
     
     #Define solver type and tolerance for MDA Lo-Fi
     mda_l.nl_solver = NLGaussSeidel()
     #The solver execution limit is used to control fidelity levels
     if fidelity == 'high':
         mda_l.nl_solver.options['maxiter'] = 0 #No Lo-Fi iterations
-    elif fidelity == 'multi':
-        mda_l.nl_solver.options['maxiter'] = it_l #Adds the limit for the execution of the MDA Solver
-          
+              
     mda_l.nl_solver.options['rutol'] = 1.e-2 
     mda_l.nl_solver.options['use_aitken'] = True
     mda_l.nl_solver.options['aitken_alpha_min'] = 0.1
     mda_l.nl_solver.options['aitken_alpha_max'] = 1.5
 
     mda_l.ln_solver = ScipyGMRES()
-
+    
     #Define solver type and tolerance for MDA Hi-Fi
     mda_h.nl_solver = NLGaussSeidel()
     #The solver execution limit is used to control fidelity levels
     if fidelity == 'low':
         mda_h.nl_solver.options['maxiter'] = 0
         
-    mda_h.nl_solver.options['rutol'] = 1.e-2
+    mda_h.nl_solver.options['rutol'] = 1.e-3
     mda_h.nl_solver.options['use_aitken'] = True
     mda_h.nl_solver.options['aitken_alpha_min'] = 0.1
     mda_h.nl_solver.options['aitken_alpha_max'] = 1.5
 
     mda_h.ln_solver = ScipyGMRES()
-
+    
     root.add('mda_group_l', mda_l, promotes=['*'])
 
     #Explicit connection Lo-Fi
@@ -290,7 +288,6 @@ if __name__ == "__main__":
     root.mda_group_l.connect('aerodynamics.apoints_coord','inter.apoints_coord')
     root.connect('aerodynamic_mesher.apoints_coord', 'aerodynamics.apoints_coord')
     root.connect('aerodynamic_mesher.apoints_coord','inter.apoints_coord')
-    
     #Connect Indep Variables
     root.connect('Mach_number.Mach', 'aerodynamics.Mach')
     root.connect('b_baseline', 'aerodynamics.b')
@@ -299,18 +296,17 @@ if __name__ == "__main__":
     root.connect('Youngs_modulus.E', 'structures.E')
     root.connect('material_density.rho_s', 'structures.rho_s')
     root.connect('xs_b', 'structures.node_coord_all')
-      
+    
     root.add('mda_group_h', mda_h, promotes=['*'])
     
     #Explicit connection Hi-Fi
     root.mda_group_h.connect('displacement_transfer_h.delta','aerodynamics_h.delta')
     root.mda_group_h.connect('inter_h.H','displacement_transfer_h.H')
-    root.mda_group_h.connect('mult_filter.us','displacement_transfer_h.u')
+    root.mda_group_h.connect('mult_filter_h.us','displacement_transfer_h.u')
     root.mda_group_h.connect('aerodynamics_h.f_a','load_transfer_h.f_a')
     root.mda_group_h.connect('load_transfer_h.f_node','structures_h.f_node')
     root.mda_group_h.connect('inter_h.H','load_transfer_h.H')
-    root.mda_group_h.connect('structures_h.u','mult_filter.u')
-
+    root.mda_group_h.connect('structures_h.u','mult_filter_h.u')
     #Connect Indep Variables
     root.connect('Mach_number.Mach', 'aerodynamics_h.Mach')
     root.connect('b_baseline', 'aerodynamics_h.b')
@@ -318,11 +314,20 @@ if __name__ == "__main__":
     root.connect('Poissons_ratio.nu', 'structures_h.nu')
     root.connect('Youngs_modulus.E', 'structures_h.E')
     root.connect('material_density.rho_s', 'structures_h.rho_s')
-
-    
+        
     #Multifidelity explicit connections
     
-    root.connect('structures.u', 'mult_filter.ul')
+    root.connect('structures.u', 'mult_filter_h.ul')
+    
+    #Recorder Lo-Fi
+    recorder_l = SqliteRecorder('mda_l.sqlite3')
+    recorder_l.options['record_metadata'] = False
+    #Recorder Hi-Fi
+    recorder_h = SqliteRecorder('mda_h.sqlite3')
+    recorder_h.options['record_metadata'] = False
+    # recorder.options['includes'] =
+    top.root.mda_group_l.nl_solver.add_recorder(recorder_l)
+    top.root.mda_group_h.nl_solver.add_recorder(recorder_h)
     
     #Constraint components
     #Lift coefficient constraints (two constraints with same value to treat equality constraint as two inequality constraints)
@@ -330,7 +335,7 @@ if __name__ == "__main__":
         'con_l_u = CL - n*(W_airframe+2*1.25*mass)*9.81/(0.5*rho_a*V**2*Sw)'), promotes=['*']) 
     root.add('con_lift_cruise_lower', ExecComp(
         'con_l_l = CL - n*(W_airframe+2*1.25*mass)*9.81/(0.5*rho_a*V**2*Sw)'), promotes=['*'])
-       
+    
     #Maximum stress constraint (considering factor of safety)
     root.add('con_stress', ExecComp('con_s = FS*2.5*max(VMStress) - sigma_y', VMStress=np.zeros(n_stress,dtype=float)), promotes=['*'])
 
@@ -373,7 +378,7 @@ if __name__ == "__main__":
     root.connect('interp_struct_morph.H', 'G')
     root.connect('base_aerodynamic_mesh_h.xa_b', 'interp_struct_morph.node_coord')
     root.connect('xs_b', 'interp_struct_morph.apoints_coord')
-          
+    
     #Define the optimizer (Scipy)
     top.driver = ScipyOptimizer()
     top.driver.options['optimizer'] = 'COBYLA'
@@ -447,11 +452,12 @@ if __name__ == "__main__":
 
     #Define solver type
     root.ln_solver = ScipyGMRES()
+    
 
     start1 = time.time()
     top.setup()
     end1 = time.time()
-    view_model(top, show_browser=True)
+    view_model(top, show_browser=False)
     
 
     #Setting initial values for design variables
