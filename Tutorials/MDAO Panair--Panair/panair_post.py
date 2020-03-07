@@ -24,7 +24,7 @@ copyfile(user_input+'.msh', user_input+'_post.msh')
 cp_elm = []
 
 #Open the PANAIR output file
-with open('./alpha/panair.out') as f:
+with open('./panair.out') as f:
     lines = f.readlines()
     lines = [i.split() for i in lines]
 

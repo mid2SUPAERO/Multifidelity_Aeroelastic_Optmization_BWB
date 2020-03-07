@@ -34,8 +34,9 @@ if __name__ == "__main__":
     #Position (index) of the wing break
     b_sec = 4
 
-    #Airfoil file
-    ref_airfoil_file = 'crm.eta65.unswept31.5deg.sharp.te.txt'
+    #Airfoil file, one input per section, this allows to use multiple airfoils over the wing
+    #In this case, the aifoil is the same on all 8 sections.
+    ref_airfoil_file = ['crm.eta65.unswept31.5deg.sharp.te.txt', 'crm.eta65.unswept31.5deg.sharp.te.txt', 'crm.eta65.unswept31.5deg.sharp.te.txt', 'crm.eta65.unswept31.5deg.sharp.te.txt', 'crm.eta65.unswept31.5deg.sharp.te.txt', 'crm.eta65.unswept31.5deg.sharp.te.txt', 'crm.eta65.unswept31.5deg.sharp.te.txt', 'crm.eta65.unswept31.5deg.sharp.te.txt']
 
     #Problem parameters
     #Speed of sound
@@ -169,7 +170,7 @@ if __name__ == "__main__":
 
     top = Problem()
     top.root = root = Group()
-
+    
     #Add independent variables (parameters)
     root.add('wing_area', IndepVarComp('Sw', Sw), promotes=['*'])
     root.add('Airspeed', IndepVarComp('V', V), promotes=['*'])
@@ -229,6 +230,7 @@ if __name__ == "__main__":
     mda_l = Group()
 
     #Add disciplines to the low fidelity group 
+    mda_l.add('mult_filter_l', Filter(ns, fidelity)) #This component allows to recover result from HiFi 
     mda_l.add('displacement_transfer', DisplacementTransfer(na, ns)) 
     mda_l.add('aerodynamics', Panair(na, network_info, case_name, aero_template_l, sym_plane_index=sym_plane_index), promotes=['V','Sw','alpha','rho_a']) 
     mda_l.add('load_transfer', LoadTransfer(na, ns))
@@ -281,10 +283,11 @@ if __name__ == "__main__":
     #Explicit connection Lo-Fi
     root.mda_group_l.connect('displacement_transfer.delta','aerodynamics.delta')
     root.mda_group_l.connect('inter.H','displacement_transfer.H')
-    root.mda_group_l.connect('structures.u','displacement_transfer.u')
+    root.mda_group_l.connect('mult_filter_l.us','displacement_transfer.u')
     root.mda_group_l.connect('aerodynamics.f_a','load_transfer.f_a')
     root.mda_group_l.connect('load_transfer.f_node','structures.f_node')
     root.mda_group_l.connect('inter.H','load_transfer.H')
+    root.mda_group_l.connect('structures.u','mult_filter_l.u')
     root.mda_group_l.connect('aerodynamics.apoints_coord','inter.apoints_coord')
     root.connect('aerodynamic_mesher.apoints_coord', 'aerodynamics.apoints_coord')
     root.connect('aerodynamic_mesher.apoints_coord','inter.apoints_coord')
@@ -307,6 +310,10 @@ if __name__ == "__main__":
     root.mda_group_h.connect('load_transfer_h.f_node','structures_h.f_node')
     root.mda_group_h.connect('inter_h.H','load_transfer_h.H')
     root.mda_group_h.connect('structures_h.u','mult_filter_h.u')
+    
+    #This order guarantees that the filters are always privileged in the computation
+    root.mda_group_l.set_order(['mult_filter_l', 'inter', 'displacement_transfer', 'aerodynamics', 'load_transfer','structures'])
+    root.mda_group_h.set_order(['mult_filter_h', 'inter_h', 'displacement_transfer_h', 'aerodynamics_h', 'load_transfer_h', 'structures_h'])
     #Connect Indep Variables
     root.connect('Mach_number.Mach', 'aerodynamics_h.Mach')
     root.connect('b_baseline', 'aerodynamics_h.b')
@@ -318,6 +325,7 @@ if __name__ == "__main__":
     #Multifidelity explicit connections
     
     root.connect('structures.u', 'mult_filter_h.ul')
+    root.connect('structures_h.u', 'mult_filter_l.ul')
     
     #Recorder Lo-Fi
     recorder_l = SqliteRecorder('mda_l.sqlite3')
@@ -325,7 +333,6 @@ if __name__ == "__main__":
     #Recorder Hi-Fi
     recorder_h = SqliteRecorder('mda_h.sqlite3')
     recorder_h.options['record_metadata'] = False
-    # recorder.options['includes'] =
     top.root.mda_group_l.nl_solver.add_recorder(recorder_l)
     top.root.mda_group_h.nl_solver.add_recorder(recorder_h)
     
@@ -453,11 +460,14 @@ if __name__ == "__main__":
     #Define solver type
     root.ln_solver = ScipyGMRES()
     
-
-    start1 = time.time()
+    start1 = time.time() #timer for set-up and re-order
     top.setup()
+    order = root.list_auto_order() #This is to ensure that the mda_l group is executed always before the mda_h group
+    a, b = order[0].index('mda_group_h'), order[0].index('mda_group_l')
+    order[0].insert(a, order[0].pop(b))
+    root.set_order(order[0])
     end1 = time.time()
-    view_model(top, show_browser=False)
+    view_model(top, show_browser=False) #generates an N2 diagram to visualize connections
     
 
     #Setting initial values for design variables
