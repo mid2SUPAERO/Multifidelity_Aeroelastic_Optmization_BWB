@@ -141,8 +141,20 @@ Fig. \ref{fig:CRM_sol} shows the evolution of the main solution parameters for t
 An implementation using ADFlow as the high fidelity fluid solver was explored as well. However, despite the numerous attempts, the solution of the problem never converged. This was due to the fact that the partial solutions from the low fidelity MDA contained regions with geometries that caused the CFD solution to diverge. Since the CFD mesh could not be manually corrected at each step, ADFlow crashed at a certain point and thus the optimizer as well.
 
 \subsection{Blended Wing Body}
+In this case, the optimization variable to minimize is the fuel consumption (calculated using the Breguet equation). The parameters and baseline geometry are available in the tutorial section of the \href{https://github.com/mid2SUPAERO/RP_MAE_GILBERTO_RUIZ_JIMENEZ}{GitHub repository}. Fig. \ref{fig:BWB_sol} shows the structural and aerodynamic solution at the end of the optimization loop for the single fidelity case. After successfully solving the problem in single fidelity, the aerodynamic mesh was refined using a python library developed at ONERA: CASIOPÉE \cite{Benoit2015}. 
 
-Just like in the previous test case, an implementation using ADFlow as the high fidelity fluid solver was explored. The geometry in this case is even more complex, hence, it was not surprising to get the same crash of the program after some optimizer runs. 
+\begin{figure}[htpb]
+\centering
+\begin{tabular}{c}
+\subfloat[Cp distribution]{\includegraphics[width=0.9\columnwidth]{images/BWB_cp_dist.PNG}} \\
+\subfloat[Equivalent Von Mises Stress (MPa)]{\includegraphics[width = 0.9\columnwidth]{images/BWB_vonmises_dist.PNG}} 
+\end{tabular}
+\caption{Optimization result for the BWB case, single fidelity.}
+\label{fig:BWB_sol}
+\end{figure}
+
+A series of issues arose after the mesh refinement for the high fidelity case, mainly that the enriched geometry had some non-convex panels that were not compatible with the high order panel code. As a consequence, the refinement was repeated, this time only doubling the mesh nodes instead of tripling them. In this case, Panair did not crash, but the resulting Cp distribution had some panels with undefined values. This, in turn, causes the optimizer to crash because it cannot parse the current vector into the inner algorithm. Despite numerous attempts to create a viable high-fidelity mesh for Panair, the very well known issue of convexity between panels prevented a smooth run of the current method. \par 
+Just like in the previous test case, an implementation using ADFlow as the high fidelity fluid solver was explored. The geometry in is now even more complex, hence, it was not surprising to get the same crash of the program after some optimizer runs, this time due to the large deformations of the structure produced by the optimizer, which in turn generate spikes in the aerodynamic mesh that cause the CFD code to fail.  
 
 \subsection{Analytical functions}
 With the aim of validating the performance of the simple transfer strategy, 5 different analytical formulations of a high and low fidelity functions \cite{Bryson2018} were combined with the classic Sellar problem \cite{Sellar1996} and programmed in OpenMDAO along with the filter component to transfer data from the low fidelity MDA to the high fidelity MDA. The problems include an expensive function and a close cheap approximation that lacks local details. As described in \cite{Bryson2018}:
