@@ -16,48 +16,41 @@
   \small	
   \textbf{\textit{Keywords---}} #1
 }
-\hypersetup{colorlinks=true, urlcolor=blue, linkcolor=black, citecolor=black}
+
 
 \title{Multifidelity aeroelastic optimization with application to a BWB}
 
-\author{Gilberto Ruiz Jiménez\footnote{Insert Job Title, Department Name, Address/Mail Stop, and AIAA Member Grade (if any) for first author.} and Joan Mas Colomer\footnote{Insert Job Title, Department Name, Address/Mail Stop, and AIAA Member Grade (if any) for second author.}}
-\affil{Université de Toulouse, Toulouse, France, 31400}
-\author{Joseph Morlier\footnote{Insert Job Title, Department Name, Address/Mail Stop, and AIAA Member Grade (if any) for third author.}}
-\affil{Université de Toulouse, Toulouse, France, 31400}
+\author{Gilberto Ruiz Jiménez\footnote{M.Sc. Graduate, ISAE-SUPAERO, 10 Av. Edouard Belin, 31400, Toulouse, France, gilberto.ruiz-jimenez@isae-alumni.net} and Joan Mas Colomer\footnote{Postdoctoral Researcher, Institut Clément Ader, ISAE-SUPAERO, 10 Av. Edouard Belin, 31400, Toulouse, France}}
+\affil{ISAE-SUPAERO, Université de Toulouse, Toulouse, France}
+\author{Joseph Morlier\footnote{Professor, ICA, Université de Toulouse, ISAE-SUPAERO, MINES ALBI, UPS, INSA, CNRS, Toulouse, France, AIAA Member}}
+\affil{ICA, Université de Toulouse, ISAE-SUPAERO, MINES ALBI, UPS, INSA, CNRS, Toulouse, France}
 
 \begin{document}
-\twocolumn[
-\begin{@twocolumnfalse}
+
 \maketitle
 
 \begin{abstract}
-A multifidelity approach for the solution of aeroelastic optimization problems is developed using open-source tools. The Multidisciplinary Optimization problem is managed via OpenMDAO and a dedicated python library. Aerodynamics are solved with PANAIR, with a detailed mesh for the High-Fidelity case and a coarser mesh for the Low-Fidelity one. Structural displacements are computed via NASTRAN and transferred to the aerodynamic mesh with radial basis functions (RBF). The program starts solving the coupled problem at a low fidelity level, and once some predefined convergence tolerance is reached, the high fidelity solver is called. The Multidisciplinary Analysis (MDA) solution is then treated by the outer-loop optimizer, which modifies the geometry in order to comply with design constraints and minimize fuel consumption. The method was implemented on the NASA CRM wing section, on a Blended Wing Boyd (BWB) concept, and using analytical test functions. It was found that a simple transfer of the displacement field between fidelities helps to slightly reduce optimization iterations while improving constraint convergence. 
+A multifidelity approach for the solution of aeroelastic optimization problems is developed using open-source tools. The Multidisciplinary Optimization problem is managed via OpenMDAO and a dedicated python library. Aerodynamics are solved with PANAIR, with a detailed mesh for the High-Fidelity case and a coarser mesh for the Low-Fidelity one. Structural displacements are computed via NASTRAN and transferred to the aerodynamic mesh with radial basis functions (RBF). The program starts solving the coupled problem at a low fidelity level, and once some predefined convergence tolerance is reached, the high fidelity solver is called. The Multidisciplinary Analysis (MDA) solution is then treated by the outer-loop optimizer, which modifies the geometry in order to comply with design constraints and minimize fuel consumption. The method was implemented on the NASA CRM wing section, on a Blended Wing Boyd (BWB) concept, and using analytical test functions. It was found that a simple transfer of the displacement field between fidelities helps to slightly reduce optimization iterations while improving constraint satisfaction. 
 \end{abstract}
 \keywords{Multifidelity, aeroelasticity, BWB, MDO}
 \newline
 \newline
-
-\end{@twocolumnfalse}
-]
-\footnotetext[1]{M.Sc. Student, ISAE-SUPAERO, 10 Av. Edouard Belin, 31400, Toulouse, France, gilberto.ruiz-jimenez@student.isae-supaero.fr}
-\footnotetext[2]{Postdoctoral Researcher, DMSM, 10 Av. Edouard Belin, 31400, Toulouse, France, joan.mas-colomer2@isae-supaero.fr}
-\footnotetext[3]{Professor, Institut Clément Ader (ICA), CNRS, ISAE-SUPAERO, UPS, INSA, Mines-Albi, 3 rue Caroline Aigle, 31400 Toulouse, France, Joseph.morlier@isae-supaero.fr, AIAA Member}
-%\section{Nomenclature}
+\section{Nomenclature}
 
 %Uncomment nomenclature table if needed
-%{\renewcommand\arraystretch{1.0}
-%\noindent\begin{longtable*}{@{}l @{\quad=\quad} l@{}}
-%$MDO$ & MultiDisciplinary Optimization \\
-%$MDA$ & MultiDisciplinary Analysis \\
-%$MDF$ & MultiDisciplinary Feasible \\
-%$BWB$ & Blended Wing Body \\
-%$TRMM$ & Trust Region Model Management \\
-%$MLE$ & Maximum Likelihood Estimate \\
-%$RANS$ & Reynolds-Averaged Navier–Stokes equations \\
-%$IDF$ & Individual Discipline Feasible \\
-%$COBYLA$ & Constrained Optimization By Linear Approximation \\
-%$RBF$ & Radial Basis Functions 
-%\end{longtable*}}
+{\renewcommand\arraystretch{1.0}
+\noindent\begin{longtable*}{@{}l @{\quad=\quad} l@{}}
+$MDO$ & MultiDisciplinary Optimization \\
+$MDA$ & MultiDisciplinary Analysis \\
+$MDF$ & MultiDisciplinary Feasible \\
+$BWB$ & Blended Wing Body \\
+$TRMM$ & Trust Region Model Management \\
+$MLE$ & Maximum Likelihood Estimate \\
+$RANS$ & Reynolds-Averaged Navier–Stokes equations \\
+$IDF$ & Individual Discipline Feasible \\
+$COBYLA$ & Constrained Optimization By Linear Approximation \\
+$RBF$ & Radial Basis Functions 
+\end{longtable*}}
 
 \section{Introduction}
 \lettrine{M}{odern} engineering design problems rely increasingly on the interdisciplinary interactions between subsystems. As a consequence, multidisciplinary design strategies have been developed, these allow to manipulate design variables from various disciplines simultaneously. Moreover, the incorporation of optimization tools within these methodologies leads to what is referred collectively as Multidisciplinary Design Optimization (MDO).    
@@ -67,7 +60,6 @@ The starting point for the bibliography research is a Survey of Multifidelity Me
 Newton methods and their variations have been explored as well. Jovanov and Breuker propose to solve the High-Fidelity problem by adding an aerodynamic correction load to the solution of the Low-Fidelity equation. The defect-correction method accelerates the convergence compared to the Quasi-Newton method \cite{Jovanov2015}. This last case does not consider the methods as black-boxes, but rather exploits the fact that the algorithms of both fidelity levels are known and can be modified at any stage to accommodate the necessary corrections between them. Scholz presents an Aggressive Space Mapping methodology, it solves for the low fidelity fluid–structure interaction solution and then feeds that information to a Quasi-Newton algorithm. The final results are obtained from a mapping function between both fidelity levels \cite{Scholcz2014}. \par
 When it comes to the application of mutifidelity models to aerospace design, there are several publications on the subject. A Bayesian-enhanced Low-Fidelity correction proved the ability to maintain high-fidelity accuracy while reducing computational cost associated with the optimization of an airfoil shape \cite{fischer2018bayesian}. An aeroelastic optimization of a BWB was carried out by Bryson \cite{Bryson2019} using a new TRMM (Trust Region Model Management) approach. Its main difference is that it adds hybrid additive-multiplicative corrections (or bridge functions) to the low-fidelity analysis \cite{Bryson2019a}. Another approach to the aeroelastic optimization of a BWB is presented by Marques \cite{Marques2019}. The flutter boundary problem is solved with a contour location approach (i.e. the zero contour of the aeroelastic damping coefficient). It also incorporates an active learning strategy, where the model evaluations are selected iteratively based on how much they are estimated to improve the predictions. 
 All of the aforementioned techniques require statistical processing and complex combinations of stochastic regression and surrogate functions. This work explored a simpler approach: transfering of information within the routines of the MDAO, taking advantage of the open-source tools at every step of the process. \par
-%%%%DESCRIBIR LA ESTRUCTURA DEL ARTÍCULO%%%%%%%%
 Section \ref{sec:methodology} describes in detail the proposed method, as well as the tools that were integrated in the MDAO and how they were programmed. Section \ref{sec:Demonstration} presents three different test approaches for the current formulation: optimizing the NASA Common Research Model (CRM) wing, optimizing a BWB configuration, and solving analytical optimization problems used to benchmark MDAO architectures. The results and perspectives for future work are discussed in section \ref{sec:conclusions}. 
 \section{Methodology}
 \label{sec:methodology}
@@ -121,43 +113,10 @@ In the case of the analytical functions, it was possible to use a SLSQP algorith
 
 \section{Demonstration problems}
 \label{sec:Demonstration}
-Three different demonstration problems were solved with the proposed method. A first attempt was made to optimize the NASA CRM wing in cruise conditions. Then, the same analysis was carried out for a Blended Wing Body concept. Lastly, the present method was applied to analytical functions with different behaviours. This allowed to get a more general understanding of the performance of the multifidelity strategy. Each demonstration problem is described in detail in the following subsections. 
-
-\subsection{NASA CRM wing}
-In this case, the optimization of the aeroelastic structure was carried out with respect to the induced drag. The design was constrained to generate enough lift for cruise conditions and not to exceed the maximum equivalent stress on the structure including the regulatory safety factor. Detailed problem setup up is available in the \href{https://github.com/mid2SUPAERO/RP_MAE_GILBERTO_RUIZ_JIMENEZ}{GitHub repository}.
-
-\begin{figure}[htpb]
-\centering
-\begin{tabular}{c}
-\subfloat[Objective function]{\includegraphics[width=0.9\columnwidth]{images/comparison_objective_sellar.pdf}} \\
-\subfloat[Lift Constraint]{\includegraphics[width = 0.9\columnwidth]{images/mdao_comparison_constraint_1.pdf}} \\
-\subfloat[Stress Constraint]{\includegraphics[width = 0.9\columnwidth]{images/mdao_comparison_constraint_2.pdf}} 
-\end{tabular}
-\caption{Evolution of the solution parameters for both fidelity levels, NASA CRM wing, Panair--Panair}
-\label{fig:CRM_sol}
-\end{figure}
-
-Fig. \ref{fig:CRM_sol} shows the evolution of the main solution parameters for this case in both single and multifidelity modes. When it comes to the objective function, it is clear that the amount of iterations to converge is only slightly reduced. On the other hand, both constraints are closer to zero for the multifidelity case. A clear gap between the compared strategies means that constraint compliance is never as good in single fidelity mode. Which means that for the same solution, one could reduce the optimizer iterations and get to a similar overall configuration that satisfies the imposed constraints just as well. 
-An implementation using ADFlow as the high fidelity fluid solver was explored as well. However, despite the numerous attempts, the solution of the problem never converged. This was due to the fact that the partial solutions from the low fidelity MDA contained regions with geometries that caused the CFD solution to diverge. Since the CFD mesh could not be manually corrected at each step, ADFlow crashed at a certain point and thus the optimizer as well.
-
-\subsection{Blended Wing Body}
-In this case, the optimization variable to minimize is the fuel consumption (calculated using the Breguet equation). The parameters and baseline geometry are available in the tutorial section of the \href{https://github.com/mid2SUPAERO/RP_MAE_GILBERTO_RUIZ_JIMENEZ}{GitHub repository}. Fig. \ref{fig:BWB_sol} shows the structural and aerodynamic solution at the end of the optimization loop for the single fidelity case. After successfully solving the problem in single fidelity, the aerodynamic mesh was refined using a python library developed at ONERA: CASIOPÉE \cite{Benoit2015}. 
-
-\begin{figure}[htpb]
-\centering
-\begin{tabular}{c}
-\subfloat[Cp distribution]{\includegraphics[width=0.9\columnwidth]{images/BWB_cp_dist.PNG}} \\
-\subfloat[Equivalent Von Mises Stress (MPa)]{\includegraphics[width = 0.9\columnwidth]{images/BWB_vonmises_dist.PNG}} 
-\end{tabular}
-\caption{Optimization result for the BWB case, single fidelity.}
-\label{fig:BWB_sol}
-\end{figure}
-
-A series of issues arose after the mesh refinement for the high fidelity case, mainly that the enriched geometry had some non-convex panels that were not compatible with the high order panel code. As a consequence, the refinement was repeated, this time only doubling the mesh nodes instead of tripling them. In this case, Panair did not crash, but the resulting Cp distribution had some panels with undefined values. This, in turn, causes the optimizer to crash because it cannot parse the current vector into the inner algorithm. Despite numerous attempts to create a viable high-fidelity mesh for Panair, the very well known issue of convexity between panels prevented a smooth run of the current method. \par 
-Just like in the previous test case, an implementation using ADFlow as the high fidelity fluid solver was explored. The geometry in is now even more complex, hence, it was not surprising to get the same crash of the program after some optimizer runs, this time due to the large deformations of the structure produced by the optimizer, which in turn generate spikes in the aerodynamic mesh that cause the CFD code to fail.  
+Three different demonstration problems were solved with the proposed method. We first addressed classic analytical functions with different behaviours. This allowed to get a more general understanding of the performance of the multifidelity strategy.  Then, the strategy was implemented to optimize the NASA CRM wing in cruise conditions. Lastly, the same analysis was carried out for a Blended Wing Body concept. Each demonstration problem is described in detail in the following subsections. 
 
 \subsection{Analytical functions}
-With the aim of validating the performance of the simple transfer strategy, 5 different analytical formulations of a high and low fidelity functions \cite{Bryson2018} were combined with the classic Sellar problem \cite{Sellar1996} and programmed in OpenMDAO along with the filter component to transfer data from the low fidelity MDA to the high fidelity MDA. The problems include an expensive function and a close cheap approximation that lacks local details. As described in \cite{Bryson2018}:
+With the aim of validating the performance of the simple transfer strategy when the low and high fidelity functions have different shapes, 5 different analytical formulations of a high and low fidelity functions \cite{Bryson2018} were combined with the classic Sellar problem \cite{Sellar1996} and programmed in OpenMDAO along with the filter component to transfer data from the low fidelity MDA to the high fidelity MDA. The problems include an expensive function and a close cheap approximation that lacks local details. As described in \cite{Bryson2018}:
 \begin{quoting}
 Two high fidelity functions (Rosenbrock and Brown) have single minima, while the others are multimodal. The test suite encompasses a variety of mathematical forms, including polynomials, sinusoids, and exponentials.
 \end{quoting} All of the formulations are listed in the Appendix A, alongside with the corresponding plots of the results. The sample problems were solved using two different optimization algorithms: COBYLA and SLSQP. Tab. \ref{tab:Analytical} summarizes the results of the tests. 
@@ -165,7 +124,8 @@ Two high fidelity functions (Rosenbrock and Brown) have single minima, while the
 
 \begin{table}[htpb]
 \caption{Optimizer iterations needed to converge to a minimum, various formulations.}
-\resizebox{\columnwidth}{!}{%
+\centering
+\resizebox{0.5\textwidth}{!}{%
 \begin{tabular}{l|r|r|r|r|}
 \cline{2-5}
  & \multicolumn{2}{c|}{\textbf{COBYLA Iterations}} & \multicolumn{2}{c|}{\textbf{SLSQP Iterations}} \\ \hline
@@ -188,16 +148,51 @@ With this computation, the best, intermediate and worst functions were compared.
 \begin{figure}[htpb]
 \centering
 \begin{tabular}{c}
-\subfloat[Rosenbrock (worst) -McCormick (intermidiate)]{\includegraphics[width=0.9\columnwidth]{images/plot_beta_McCormick_Rosenbrock.pdf}} \\
-\subfloat[Styblinski (best) - McCormick (intermidiate)]{\includegraphics[width = 0.9\columnwidth]{images/plot_beta_McCormick_Styblinski.pdf}} 
+\subfloat[Rosenbrock (worst) -McCormick (intermidiate)]{\includegraphics[width=0.7\textwidth]{images/plot_beta_McCormick_Rosenbrock.pdf}} \\
+\subfloat[Styblinski (best) - McCormick (intermidiate)]{\includegraphics[width = 0.7\textwidth]{images/plot_beta_McCormick_Styblinski.pdf}} 
 \end{tabular}
 \caption{Comparison of the beta parameter for the analytical functions with respect to the fidelity switches}
 \label{fig:betaplots}
 \end{figure}
 
+\subsection{NASA CRM wing}
+In this case, the optimization of the aeroelastic structure was carried out with respect to the induced drag. The design was constrained to generate enough lift for cruise conditions and not to exceed the maximum equivalent stress on the structure including the regulatory safety factor. Detailed problem setup up is available in the \href{https://github.com/mid2SUPAERO/RP_MAE_GILBERTO_RUIZ_JIMENEZ}{GitHub repository}.
+
+\begin{figure}[htpb]
+\centering
+\begin{tabular}{c}
+\subfloat[Objective function]{\includegraphics[width=0.5\textwidth]{images/comparison_objective_sellar.pdf}} \\
+\subfloat[Lift Constraint]{\includegraphics[width = 0.5\textwidth]{images/mdao_comparison_constraint_1.pdf}} \\
+\subfloat[Stress Constraint]{\includegraphics[width = 0.5\textwidth]{images/mdao_comparison_constraint_2.pdf}} 
+\end{tabular}
+\caption{Evolution of the solution parameters for both fidelity levels, NASA CRM wing, Panair--Panair}
+\label{fig:CRM_sol}
+\end{figure}
+
+Fig. \ref{fig:CRM_sol} shows the evolution of the main solution parameters for this case in both single and multifidelity modes. When it comes to the objective function, it is clear that the amount of iterations to converge is only slightly reduced. On the other hand, both constraints are closer to zero for the multifidelity case. A clear gap between the compared strategies means that constraint satisfaction is never as good in single fidelity mode. Which means that for the same solution, one could reduce the optimizer iterations and get to a similar overall configuration that satisfies the imposed constraints just as well. 
+An implementation using ADFlow as the high fidelity fluid solver was explored as well. However, despite the numerous attempts, the solution of the problem never converged. This was due to the fact that the partial solutions from the low fidelity MDA contained regions with geometries that caused the CFD solution to diverge. Since the CFD mesh could not be manually corrected at each step, ADFlow crashed at a certain point and thus the optimizer as well.
+
+\subsection{Blended Wing Body}
+In this case, the optimization variable to minimize is the fuel consumption (calculated using the Breguet equation). The parameters and baseline geometry are available in the tutorial section of the \href{https://github.com/mid2SUPAERO/RP_MAE_GILBERTO_RUIZ_JIMENEZ}{GitHub repository}. Fig. \ref{fig:BWB_sol} shows the structural and aerodynamic solution at the end of the optimization loop for the single fidelity case. After successfully solving the problem in single fidelity, the aerodynamic mesh was refined using a python library developed at ONERA: CASIOPÉE \cite{Benoit2015}. 
+
+\begin{figure}[htpb]
+\centering
+\begin{tabular}{c}
+\subfloat[Cp distribution]{\includegraphics[width=0.7\textwidth]{images/BWB_cp_dist.PNG}} \\
+\subfloat[Equivalent Von Mises Stress, MPa]{\includegraphics[width = 0.7\textwidth]{images/BWB_vonmises_dist.PNG}} 
+\end{tabular}
+\caption{Optimization result for the BWB case, single fidelity.}
+\label{fig:BWB_sol}
+\end{figure}
+
+A series of issues arose after the mesh refinement for the high fidelity case, mainly that the enriched geometry had some non-convex panels that were not compatible with the high order panel code. As a consequence, the refinement was repeated, this time only doubling the mesh nodes instead of tripling them. In this case, Panair did not crash, but the resulting Cp distribution had some panels with undefined values. This, in turn, causes the optimizer to crash because it cannot parse the current vector into the inner algorithm. Despite numerous attempts to create a viable high-fidelity mesh for Panair, the very well known issue of convexity between panels prevented a smooth run of the current method. \par 
+Just like in the previous test case, an implementation using ADFlow as the high fidelity fluid solver was explored. The geometry in is now even more complex, hence, it was not surprising to get the same crash of the program after some optimizer runs, this time due to the large deformations of the structure produced by the optimizer, which in turn generate spikes in the aerodynamic mesh that cause the CFD code to fail.  
+
+
+
 \section{Conclusions and perspectives}
 \label{sec:conclusions}
-After a thorough review of different implementations of the presented method, it was shown that the constraint compliance is the main part of the MDAO problem that benefits from the exchange of information between fidelities. The overall number of optimizer calls is only slightly reduced, however, one must remember that the simplicity of implementation is unlike any other existing strategies. This is all contingent of course on the nature of the low and high fidelity functions, as demonstrated in the analytical test section of this work. \par
+After a thorough review of different implementations of the presented method, it was shown that the constraint satisfaction is the main part of the MDAO problem that benefits from the exchange of information between fidelities. The overall number of optimizer calls is only slightly reduced, however, one must remember that the simplicity of implementation is unlike any other existing strategies. This is all contingent of course on the nature of the low and high fidelity functions, as demonstrated in the analytical test section of this work. \par
 Another important issue is the morphing of the structure in a way that does not disrupt the aerodynamic mesh to the point that singularities start to show. This is specifically problematic when the high fidelity method is a CFD solver. Constraining the design variables of the structural solver is one of the solutions, however, this must be done carefully so as not to over-constraint the structural optimization in such a way that the mass reduction from the optimization is affected. \par
 Some other improvements could be possible with the inclusion of a scaling strategy that used the computed $\beta$ factor at each step to reduce or increase the weight of the low fidelity function with respect to the high fidelity one. Most of the strategies that follow this path use stochastic predictors or surrogates, but if the objective was to try and keep the model as simple as possible, the case can be made for a linear regression at the displacement field transfer. This could potentially allow to keep the constraint convergence acceleration while also reducing the optimization runs.
 
@@ -232,9 +227,9 @@ Some other improvements could be possible with the inclusion of a scaling strate
 \begin{figure}[htpb]
 \centering
 \begin{tabular}{c}
-\subfloat[Objective function]{\includegraphics[width=0.4\textwidth]{images/comparison_objective_McCormick.pdf}} \\
-\subfloat[Constraint 1]{\includegraphics[width = 0.4\textwidth]{images/McCormick_comparison_constraint_1.pdf}} \\
-\subfloat[Constraint 2]{\includegraphics[width = 0.4\textwidth]{images/McCormick_comparison_constraint_2.pdf}} 
+\subfloat[Objective function]{\includegraphics[width=0.5\textwidth]{images/comparison_objective_McCormick.pdf}} \\
+\subfloat[Constraint 1]{\includegraphics[width = 0.5\textwidth]{images/McCormick_comparison_constraint_1.pdf}} \\
+\subfloat[Constraint 2]{\includegraphics[width = 0.5\textwidth]{images/McCormick_comparison_constraint_2.pdf}} 
 \end{tabular}
 \caption{Comparison of evolution of solution parameters for the McCormick function}
 \label{fig:McCormick_sol}
@@ -265,9 +260,9 @@ Some other improvements could be possible with the inclusion of a scaling strate
 \begin{figure}[htpb]
 \centering
 \begin{tabular}{c}
-\subfloat[Objective function]{\includegraphics[width=0.4\textwidth]{images/comparison_objective_Brown.pdf}} \\
-\subfloat[Constraint 1]{\includegraphics[width = 0.4\textwidth]{images/Brown_comparison_constraint_1.pdf}} \\
-\subfloat[Constraint 2]{\includegraphics[width = 0.4\textwidth]{images/Brown_comparison_constraint_2.pdf}} 
+\subfloat[Objective function]{\includegraphics[width=0.5\textwidth]{images/comparison_objective_Brown.pdf}} \\
+\subfloat[Constraint 1]{\includegraphics[width = 0.5\textwidth]{images/Brown_comparison_constraint_1.pdf}} \\
+\subfloat[Constraint 2]{\includegraphics[width = 0.5\textwidth]{images/Brown_comparison_constraint_2.pdf}} 
 \end{tabular}
 \caption{Comparison of evolution of solution parameters for the Brown function}
 \label{fig:Brown_sol}
@@ -298,9 +293,9 @@ Some other improvements could be possible with the inclusion of a scaling strate
 \begin{figure}[htpb]
 \centering
 \begin{tabular}{c}
-\subfloat[Objective function]{\includegraphics[width=0.4\textwidth]{images/comparison_objective_Styblinski.pdf}} \\
-\subfloat[Constraint 1]{\includegraphics[width = 0.4\textwidth]{images/Styblinski_comparison_constraint_1.pdf}} \\
-\subfloat[Constraint 2]{\includegraphics[width = 0.4\textwidth]{images/Styblinski_comparison_constraint_2.pdf}} 
+\subfloat[Objective function]{\includegraphics[width=0.5\textwidth]{images/comparison_objective_Styblinski.pdf}} \\
+\subfloat[Constraint 1]{\includegraphics[width = 0.5\textwidth]{images/Styblinski_comparison_constraint_1.pdf}} \\
+\subfloat[Constraint 2]{\includegraphics[width = 0.5\textwidth]{images/Styblinski_comparison_constraint_2.pdf}} 
 \end{tabular}
 \caption{Comparison of evolution of solution parameters for the Styblinski-Tang function}
 \label{fig:Styblinski_sol}
@@ -331,9 +326,9 @@ Some other improvements could be possible with the inclusion of a scaling strate
 \begin{figure}[htpb]
 \centering
 \begin{tabular}{c}
-\subfloat[Objective function]{\includegraphics[width=0.4\textwidth]{images/comparison_objective_Rosenbrock.pdf}} \\
-\subfloat[Constraint 1]{\includegraphics[width = 0.4\textwidth]{images/Rosenbrock_comparison_constraint_1.pdf}} \\
-\subfloat[Constraint 2]{\includegraphics[width = 0.4\textwidth]{images/Rosenbrock_comparison_constraint_2.pdf}} 
+\subfloat[Objective function]{\includegraphics[width=0.5\textwidth]{images/comparison_objective_Rosenbrock.pdf}} \\
+\subfloat[Constraint 1]{\includegraphics[width = 0.5\textwidth]{images/Rosenbrock_comparison_constraint_1.pdf}} \\
+\subfloat[Constraint 2]{\includegraphics[width = 0.5\textwidth]{images/Rosenbrock_comparison_constraint_2.pdf}} 
 \end{tabular}
 \caption{Comparison of evolution of solution parameters for the Rosenbrock function}
 \label{fig:Rosenbrock_sol}
@@ -364,9 +359,9 @@ Some other improvements could be possible with the inclusion of a scaling strate
 \begin{figure}[htpb]
 \centering
 \begin{tabular}{c}
-\subfloat[Objective function]{\includegraphics[width=0.4\textwidth]{images/comparison_objective_Trigonometric.pdf}} \\
-\subfloat[Constraint 1]{\includegraphics[width = 0.4\textwidth]{images/Trigonometric_comparison_constraint_1.pdf}} \\
-\subfloat[Constraint 2]{\includegraphics[width = 0.4\textwidth]{images/Trigonometric_comparison_constraint_2.pdf}} 
+\subfloat[Objective function]{\includegraphics[width=0.5\textwidth]{images/comparison_objective_Trigonometric.pdf}} \\
+\subfloat[Constraint 1]{\includegraphics[width = 0.5\textwidth]{images/Trigonometric_comparison_constraint_1.pdf}} \\
+\subfloat[Constraint 2]{\includegraphics[width = 0.5\textwidth]{images/Trigonometric_comparison_constraint_2.pdf}} 
 \end{tabular}
 \caption{Comparison of evolution of solution parameters for the Trigonometric function}
 \label{fig:Trigonometric_sol}
@@ -376,10 +371,7 @@ Some other improvements could be possible with the inclusion of a scaling strate
 This work was supported by CONACYT (The Mexican National Council for Science and Technology), grant number 2018-000041-01EXTF-00038.
 
 \bibliography{RPreferences}
-\twocolumn[
-\begin{@twocolumnfalse}
-\include{authenticity}
-\end{@twocolumnfalse}
-]
+
+
 
 \end{document}
